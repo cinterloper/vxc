@@ -68,7 +68,7 @@ func send(Channel string, Message string) {
 }
 
 func listen(Channel string) {
-	ch, id, err := conn.dp.Register(Channel, 2)
+	ch, id, err := conn.dp.Register(Channel, 1)
 	if err != nil || len(id) == 0 {
 		log.Fatal("Registration failed: ", err)
 	}
