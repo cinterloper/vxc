@@ -61,10 +61,13 @@ func main() {
 }
 
 func send(Channel string, Message string) {
-	conn.eb.Send(Channel,  nil, map[string]string{
-				"source": "vxc",
-				"data":   Message,
-			})
+	var dat map[string]string
+	b := []byte(Message)
+	err := json.Unmarshal(b,&dat)
+	if err != nil {
+		log.Fatal("json unmarshal error: ", err)
+	}
+	conn.eb.Send(Channel, nil, dat)
 }
 
 func listen(Channel string) {
