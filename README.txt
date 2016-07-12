@@ -11,8 +11,8 @@ plain strings are NOT supported
 
 
 
-$ ./vxc -h
-usage: vxc [--connect CONNECT] [--channel CHANNEL] [--listen]
+
+usage: vxc [--connect CONNECT] [--channel CHANNEL] [--listen] [--publish]
 
 options:
   --connect CONNECT, -c CONNECT
@@ -20,3 +20,5 @@ options:
   --channel CHANNEL, -n CHANNEL
                          channel name
   --listen, -l           listen
+  --publish, -p          publish
+  --help, -h             display this help and exit

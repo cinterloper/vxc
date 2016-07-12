@@ -35,7 +35,8 @@ func main() {
 	var args struct {
 	    Connect string	`arg:"-c,help:connect to host:port"`
 	    Channel string	`arg:"-n,help:channel name"`
-	    Listen bool		`arg:"-l,help:listen"`
+	    Listen  bool	`arg:"-l,help:listen"`
+	    Publish bool	`arg:"-p,help:publish"`
 	}
 	arg.MustParse(&args)
 	if args.Connect == "" {
@@ -51,7 +52,11 @@ func main() {
 			log.Fatal("readline failed(?!): ", err)
 		}
 		if len(line) > 0 {
-			send(args.Channel, string(line))
+			if(args.Publish) {
+				publish(args.Channel, string(line))
+			} else {
+				send(args.Channel, string(line))
+			}
 		}
 	}
         if args.Listen {
@@ -68,6 +73,16 @@ func send(Channel string, Message string) {
 		log.Fatal("json unmarshal error: ", err)
 	}
 	conn.eb.Send(Channel, nil, dat)
+}
+
+func publish(Channel string, Message string) {
+	var dat map[string]string
+	b := []byte(Message)
+	err := json.Unmarshal(b,&dat)
+	if err != nil {
+		log.Fatal("json unmarshal error: ", err)
+	}
+	conn.eb.Publish(Channel, nil, dat)
 }
 
 func listen(Channel string) {
