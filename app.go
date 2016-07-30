@@ -22,27 +22,30 @@ import (
 	"fmt"
 	"bufio"
 	"encoding/json"
+	"strings"
+	"sync"
 )
 
 var conn struct {
-  eb	*eventbus.EventBus
-  dp	*eventbus.Dispatcher
+	eb *eventbus.EventBus
+	dp *eventbus.Dispatcher
 }
 
 func main() {
-        r := bufio.NewReader(os.Stdin)
+	r := bufio.NewReader(os.Stdin)
 
 	var args struct {
-	    Connect string	`arg:"-c,help:connect to host:port"`
-	    Channel string	`arg:"-n,help:channel name"`
-	    Listen  bool	`arg:"-l,help:listen"`
-	    Publish bool	`arg:"-p,help:publish"`
+		Connect  string        `arg:"-c,help:connect to host:port"`
+		Channel  string        `arg:"-n,help:channel name"`
+		ChanList string     `arg:"env:CHANLIST,help:env var with names of channels to listen to"`
+		Listen   bool        `arg:"-l,help:listen"`
+		Publish  bool        `arg:"-p,help:publish"`
 	}
 	arg.MustParse(&args)
 	if args.Connect == "" {
 		args.Connect = "localhost:7000"
 	}
-	var dp,eb = connect(args.Connect)
+	var dp, eb = connect(args.Connect)
 	conn.dp = dp
 	conn.eb = eb
 	stat, _ := os.Stdin.Stat()
@@ -52,15 +55,25 @@ func main() {
 			log.Fatal("readline failed(?!): ", err)
 		}
 		if len(line) > 0 {
-			if(args.Publish) {
+			if (args.Publish) {
 				publish(args.Channel, string(line))
 			} else {
 				send(args.Channel, string(line))
 			}
 		}
 	}
-        if args.Listen {
-		listen(args.Channel)
+	if args.Listen {
+		if args.ChanList != "" {
+			var wg sync.WaitGroup
+			chans := strings.Split(args.ChanList, " ")
+			for ctr := 0; ctr < len(chans); ctr++ {
+				go listen(chans[ctr])
+				wg.Add(1)
+			}
+			wg.Wait()
+		} else {
+			listen(args.Channel)
+		}
 	}
 
 }
@@ -68,7 +81,7 @@ func main() {
 func send(Channel string, Message string) {
 	var dat map[string]string
 	b := []byte(Message)
-	err := json.Unmarshal(b,&dat)
+	err := json.Unmarshal(b, &dat)
 	if err != nil {
 		log.Fatal("json unmarshal error: ", err)
 	}
@@ -78,7 +91,7 @@ func send(Channel string, Message string) {
 func publish(Channel string, Message string) {
 	var dat map[string]string
 	b := []byte(Message)
-	err := json.Unmarshal(b,&dat)
+	err := json.Unmarshal(b, &dat)
 	if err != nil {
 		log.Fatal("json unmarshal error: ", err)
 	}
@@ -94,13 +107,13 @@ func listen(Channel string) {
 	for inMsg := range ch {
 		out, jerr := json.Marshal(inMsg.Body)
 		fmt.Println(string(out))
-		if(jerr != nil){
+		if (jerr != nil) {
 			fmt.Println(jerr)
 		}
 	}
 }
 
-func connect(Connect string) (*eventbus.Dispatcher,*eventbus.EventBus) {
+func connect(Connect string) (*eventbus.Dispatcher, *eventbus.EventBus) {
 	eventBus, err := eventbus.NewEventBus(Connect)
 	if err != nil {
 		log.Fatal("Connection to the Vert.x bridge failed: ", err)
@@ -108,5 +121,5 @@ func connect(Connect string) (*eventbus.Dispatcher,*eventbus.EventBus) {
 
 	disp := eventbus.NewDispatcher(eventBus)
 	disp.Start()
-	return disp,eventBus
+	return disp, eventBus
 }
