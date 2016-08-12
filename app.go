@@ -80,21 +80,15 @@ func main() {
 
 func send(Channel string, Message string) {
 	var dat map[string]string
-	b := []byte(Message)
-	err := json.Unmarshal(b, &dat)
-	if err != nil {
-		log.Fatal("json unmarshal error: ", err)
-	}
+	dat = make(map[string]string)
+        dat["payload"] = Message
 	conn.eb.Send(Channel, nil, dat)
 }
 
 func publish(Channel string, Message string) {
 	var dat map[string]string
-	b := []byte(Message)
-	err := json.Unmarshal(b, &dat)
-	if err != nil {
-		log.Fatal("json unmarshal error: ", err)
-	}
+	dat = make(map[string]string)
+        dat["payload"] = Message
 	conn.eb.Publish(Channel, nil, dat)
 }
 
