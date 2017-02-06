@@ -78,28 +78,25 @@ func main() {
 
 }
 func strOrJson(Message string) map[string]interface{} {
-
-	var dat map[string]interface{}
-	dat = make(map[string]interface{})
-	dat["body"] = Message
-	return dat
-}
-
-func send(Channel string, Message string) {
-	var dat map[string]interface{}
-	dat = make(map[string]interface{})
-	dat["body"] = strOrJson(Message)
-	conn.eb.Send(Channel, nil, dat)
-}
-
-func publish(Channel string, Message string) {
 	var dat map[string]interface{}
 	err := json.Unmarshal([]byte(Message), &dat)
 	if err != nil {
 		dat = make(map[string]interface{})
-		dat = strOrJson(Message)
+		dat = make(map[string]interface{})
+		dat["content"] = Message
 	}
-	conn.eb.Publish(Channel, nil, dat)
+	return dat
+}
+
+func send(Channel string, Message string) {
+
+	conn.eb.Send(Channel, nil, strOrJson(Message))
+
+}
+
+func publish(Channel string, Message string) {
+
+	conn.eb.Publish(Channel, nil, strOrJson(Message))
 }
 
 func listen(Channel string) {
