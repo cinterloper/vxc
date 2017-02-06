@@ -82,7 +82,6 @@ func strOrJson(Message string) map[string]interface{} {
 	err := json.Unmarshal([]byte(Message), &dat)
 	if err != nil {
 		dat = make(map[string]interface{})
-		dat = make(map[string]interface{})
 		dat["content"] = Message
 	}
 	return dat
